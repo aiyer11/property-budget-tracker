@@ -1,7 +1,9 @@
 package com.property.budget.tracker.categories;
 
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -10,24 +12,28 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Category create(Category category) {
+    public Category create(String name, String type, String description) {
+        Category category = new Category();
+        category.setName(name.trim());
+        category.setType(type);
+        category.setDescription(description);
         return categoryRepository.save(category);
     }
 
     public Category renameCategory(String currentName, String newName) {
         Category category = categoryRepository.findByNameIgnoreCase(currentName)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found with name: " + currentName));
-        category.setName(newName);
+        category.setName(newName.trim());
         return categoryRepository.save(category);
     }
 
-    public Category updateCategory(Long id, Category updatedCategory) {
+    public Category updateCategory(Long id, String name, String type, String description, boolean isActive) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
-        category.setName(updatedCategory.getName());
-        category.setType(updatedCategory.getType());
-        category.setDescription(updatedCategory.getDescription());
-        category.setActive(updatedCategory.isActive());
+        category.setName(name.trim());
+        category.setType(type);
+        category.setDescription(description);
+        category.setActive(isActive);
         return categoryRepository.save(category);
     }
 
@@ -46,8 +52,6 @@ public class CategoryService {
     }
 
     public List<Category> getAllActiveCategories() {
-        return categoryRepository.findAll().stream()
-                .filter(Category::isActive)
-                .toList();
+        return categoryRepository.findByIsActiveTrue();
     }
 }

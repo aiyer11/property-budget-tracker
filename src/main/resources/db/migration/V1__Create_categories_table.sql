@@ -3,7 +3,7 @@ CREATE TABLE categories (
     name VARCHAR(255) NOT NULL,
     type VARCHAR(255) NOT NULL,
     description VARCHAR(255),
-    is_active BOOLEAN NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
