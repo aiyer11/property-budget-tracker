@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "categories")
@@ -36,6 +37,6 @@ public class Category {
     private boolean isActive;
 
     @Column(nullable = false, updatable = false)
-    @Generated(value = "org.hibernate.annotations.CreationTimestamp")
+    @CreationTimestamp
     private LocalDateTime createdDate;
 }
