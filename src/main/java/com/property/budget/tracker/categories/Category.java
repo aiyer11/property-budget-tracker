@@ -1,5 +1,6 @@
 package com.property.budget.tracker.categories;
 
+import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +18,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,15 +26,16 @@ public class Category {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String type;
 
-    @Column(nullable = false)
+    @Column
     private String description;
 
     @Column(nullable = false)
     private boolean isActive;
 
     @Column(nullable = false, updatable = false)
+    @Generated(value = "org.hibernate.annotations.CreationTimestamp")
     private LocalDateTime createdDate;
 }
