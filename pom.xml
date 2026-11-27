@@ -12,20 +12,6 @@
 	<artifactId>tracker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tracker</name>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
 	<properties>
 		<java.version>25</java.version>
 		<spring-modulith.version>2.2.0-M1</spring-modulith.version>
@@ -158,6 +144,30 @@
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>3.12.0</version>
+				<configuration>
+					<java>
+						<googleJavaFormat>
+							<version>2.0.0</version>
+							<style>AOSP</style>
+							<reorderImports>true</reorderImports>
+						</googleJavaFormat>
+						<removeUnusedImports/>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
