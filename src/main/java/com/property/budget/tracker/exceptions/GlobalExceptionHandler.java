@@ -1,5 +1,7 @@
 package com.property.budget.tracker.exceptions;
 
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleDuplicate(
             DuplicateCategoryException ex) {
         return problem(HttpStatus.CONFLICT, "Category already exists", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex) {
+
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof ConstraintViolationException violation
+                    && "uq_categories_name_normalized".equals(violation.getConstraintName())) {
+                return problem(
+                        HttpStatus.CONFLICT,
+                        "Category already exists",
+                        "A category with this name already exists");
+            }
+        }
+
+        return problem(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Database error",
+                "The request could not be completed");
     }
 
     private ResponseEntity<ProblemDetail> problem(
