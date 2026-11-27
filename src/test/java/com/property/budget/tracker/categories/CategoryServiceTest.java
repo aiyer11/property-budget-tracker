@@ -32,12 +32,20 @@ class CategoryServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Category result = categoryService.create("  Housing  ", "EXPENSE", "Monthly costs");
+        Category result = categoryService.create("  Utilities  ", "EXPENSE", "Utilities for the home");
 
-        assertEquals("Housing", result.getName());
+        assertEquals("Utilities", result.getName());
         assertEquals("EXPENSE", result.getType());
-        assertEquals("Monthly costs", result.getDescription());
+        assertEquals("Utilities for the home", result.getDescription());
         verify(categoryRepository).save(result);
+    }
+
+    @Test
+    void testCreateInvalidCategory(){
+        assertThrows(IllegalArgumentException.class, () -> categoryService.create("  ", "EXPENSE", "Invalid category"));
+        assertThrows(IllegalArgumentException.class, () -> categoryService.create(null, "EXPENSE", "Invalid category"));
+        assertThrows(IllegalArgumentException.class, () -> categoryService.create("Valid Name", "  ", "Invalid category"));
+        assertThrows(IllegalArgumentException.class, () -> categoryService.create("Valid Name", null, "Invalid category"));
     }
 
     @Test
@@ -72,7 +80,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void updateCategory() {
+    void testUpdateCategory() {
         Category category = new Category();
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(categoryRepository.save(category)).thenReturn(category);
@@ -88,7 +96,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void updateCategoryDeactivate() {
+    void testUpdateCategoryDeactivate() {
         Category category = new Category();
         category.setActive(true);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -100,7 +108,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void updateCategoryThrows() {
+    void testUpdateCategoryThrows() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -111,7 +119,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void getCategoriesByType() {
+    void testGetCategoriesByType() {
         List<Category> categories = List.of(new Category());
         when(categoryRepository.findByType("EXPENSE")).thenReturn(categories);
 
@@ -120,7 +128,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findById() {
+    void testFindById() {
         Category category = new Category();
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
 
@@ -128,7 +136,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findByIdThrows() {
+    void testFindByIdThrows() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -138,7 +146,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findByName() {
+    void testFindByName() {
         Category category = new Category();
         when(categoryRepository.findByNameIgnoreCase("Housing")).thenReturn(Optional.of(category));
 
@@ -147,7 +155,7 @@ class CategoryServiceTest {
     }
 
     @Test
-    void findByNameThrows() {
+    void testFindByNameThrows() {
         when(categoryRepository.findByNameIgnoreCase("Missing")).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -157,11 +165,24 @@ class CategoryServiceTest {
     }
 
     @Test
-    void getAllActiveCategories() {
+    void testGetAllActiveCategories() {
         List<Category> categories = List.of(new Category());
         when(categoryRepository.findByIsActiveTrue()).thenReturn(categories);
 
         assertSame(categories, categoryService.getAllActiveCategories());
         verify(categoryRepository).findByIsActiveTrue();
+    }
+
+    @Test
+    void testDeactivateCategory() {
+        Category category = new Category();
+        category.setActive(true);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.save(category)).thenReturn(category);
+
+        categoryService.deactivateCategory(1L);
+
+        assertFalse(category.isActive());
+        verify(categoryRepository).save(category);
     }
 }

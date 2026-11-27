@@ -1,6 +1,7 @@
 package com.property.budget.tracker.categories;
 
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,38 +22,43 @@ public class CategoryController {
     }
 
     @PostMapping("/create")
-    public Category create(@RequestParam String name, @RequestParam String type, @RequestParam String description) {
-        return categoryService.create(name, type, description);
+    public ResponseEntity<Category> create(@RequestParam String name, @RequestParam String type, @RequestParam(required = false) String description) {
+        return ResponseEntity.ok(categoryService.create(name, type, description));
     }
 
     @PatchMapping("/rename")
-    public Category renameCategory(@RequestParam String currentName, @RequestParam String newName) {
-        return categoryService.renameCategory(currentName, newName);
+    public ResponseEntity<Category> renameCategory(@RequestParam String currentName, @RequestParam String newName) {
+        return ResponseEntity.ok(categoryService.renameCategory(currentName, newName));
     }
 
     @PutMapping("/update/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestParam String name, @RequestParam String type, @RequestParam String description, @RequestParam boolean isActive) {
-        return categoryService.updateCategory(
-                id, name, type, description, isActive);
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestParam String name, @RequestParam String type, @RequestParam(required = false) String description, @RequestParam boolean isActive) {
+        return ResponseEntity.ok(categoryService.updateCategory(
+                id, name, type, description, isActive));
     }
 
     @GetMapping("/type/{type}")
-    public List<Category> getCategoriesByType(@PathVariable String type) {
-        return categoryService.getCategoriesByType(type);
+    public ResponseEntity<List<Category>> getCategoriesByType(@PathVariable String type) {
+        return ResponseEntity.ok(categoryService.getCategoriesByType(type));
     }
 
     @GetMapping("/id/{id}")
-    public Category findById(@PathVariable Long id) {
-        return categoryService.findById(id);
+    public ResponseEntity<Category> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.findById(id));
     }
 
     @GetMapping("/name/{name}")
-    public Category findByName(@PathVariable String name) {
-        return categoryService.findByName(name);
+    public ResponseEntity<Category> findByName(@PathVariable String name) {
+        return ResponseEntity.ok(categoryService.findByName(name));
     }
 
-    @GetMapping
-    public List<Category> getAllActiveCategories() {
-        return categoryService.getAllActiveCategories();
+    @GetMapping("/active")
+    public ResponseEntity<List<Category>> getAllActiveCategories() {
+        return ResponseEntity.ok(categoryService.getAllActiveCategories());
+    }
+
+    @PostMapping("/deactivate/{id}")
+    public void deactivateCategory(@PathVariable Long id) {
+        categoryService.deactivateCategory(id);
     }
 }
