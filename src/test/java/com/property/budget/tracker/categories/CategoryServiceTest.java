@@ -11,6 +11,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.property.budget.tracker.exceptions.CategoryNotFoundException;
+import com.property.budget.tracker.exceptions.DuplicateCategoryException;
+import com.property.budget.tracker.exceptions.InvalidCategoryException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,10 +45,21 @@ class CategoryServiceTest {
 
     @Test
     void testCreateInvalidCategory(){
-        assertThrows(IllegalArgumentException.class, () -> categoryService.create("  ", "EXPENSE", "Invalid category"));
-        assertThrows(IllegalArgumentException.class, () -> categoryService.create(null, "EXPENSE", "Invalid category"));
-        assertThrows(IllegalArgumentException.class, () -> categoryService.create("Valid Name", "  ", "Invalid category"));
-        assertThrows(IllegalArgumentException.class, () -> categoryService.create("Valid Name", null, "Invalid category"));
+        assertThrows(InvalidCategoryException.class, () -> categoryService.create("  ", "EXPENSE", "Invalid category"));
+        assertThrows(InvalidCategoryException.class, () -> categoryService.create(null, "EXPENSE", "Invalid category"));
+        assertThrows(InvalidCategoryException.class, () -> categoryService.create("Valid Name", "  ", "Invalid category"));
+        assertThrows(InvalidCategoryException.class, () -> categoryService.create("Valid Name", null, "Invalid category"));
+    }
+
+    @Test
+    void testCreateDuplicateCategory() {
+        when(categoryRepository.existsByNameIgnoreCase("Housing")).thenReturn(true);
+
+        DuplicateCategoryException exception = assertThrows(DuplicateCategoryException.class,
+                () -> categoryService.create("Housing", "EXPENSE", "Duplicate category"));
+
+        assertEquals("Category already exists with name: Housing", exception.getMessage());
+        verify(categoryRepository, never()).save(any(Category.class));
     }
 
     @Test
@@ -72,10 +86,27 @@ class CategoryServiceTest {
     void testRenameCategoryNotFound() {
         when(categoryRepository.findByNameIgnoreCase("Missing")).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class,
                 () -> categoryService.renameCategory("Missing", "New name"));
 
         assertEquals("Category not found with name: Missing", exception.getMessage());
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+
+    @Test
+    void testRenameCategoryDuplicate() {
+        Category category = new Category();
+        category.setName("Housing");
+        category.setType("EXPENSE");
+        category.setDescription("Monthly costs");
+        category.setActive(true);
+        when(categoryRepository.findByNameIgnoreCase("Housing")).thenReturn(Optional.of(category));
+        when(categoryRepository.existsByNameIgnoreCaseAndIdNot("Home", category.getId())).thenReturn(true);
+
+        DuplicateCategoryException exception = assertThrows(DuplicateCategoryException.class,
+                () -> categoryService.renameCategory("Housing", "Home"));
+
+        assertEquals("Category already exists with name: Home", exception.getMessage());
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
@@ -108,10 +139,24 @@ class CategoryServiceTest {
     }
 
     @Test
+    void testUpdateCategoryDuplicate() {
+        Category category = new Category();
+        category.setId(1L);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.existsByNameIgnoreCaseAndIdNot("Home", 1L)).thenReturn(true);
+
+        DuplicateCategoryException exception = assertThrows(DuplicateCategoryException.class,
+                () -> categoryService.updateCategory(1L, "Home", "EXPENSE", null, true));
+
+        assertEquals("Category already exists with name: Home", exception.getMessage());
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+
+    @Test
     void testUpdateCategoryThrows() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class,
                 () -> categoryService.updateCategory(1L, "Home", "EXPENSE", null, true));
 
         assertEquals("Category not found with id: 1", exception.getMessage());
@@ -139,7 +184,7 @@ class CategoryServiceTest {
     void testFindByIdThrows() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class,
                 () -> categoryService.findById(1L));
 
         assertEquals("Category not found with id: 1", exception.getMessage());
@@ -158,7 +203,7 @@ class CategoryServiceTest {
     void testFindByNameThrows() {
         when(categoryRepository.findByNameIgnoreCase("Missing")).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class,
                 () -> categoryService.findByName("Missing"));
 
         assertEquals("Category not found with name: Missing", exception.getMessage());

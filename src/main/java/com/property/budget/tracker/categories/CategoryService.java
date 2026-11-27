@@ -1,5 +1,6 @@
 package com.property.budget.tracker.categories;
 
+import com.property.budget.tracker.exceptions.DuplicateCategoryException;
 import com.property.budget.tracker.exceptions.InvalidCategoryException;
 import com.property.budget.tracker.exceptions.CategoryNotFoundException;
 import java.util.List;
@@ -16,7 +17,11 @@ public class CategoryService {
 
     public Category create(String name, String type, String description) {
         Category category = new Category();
-        category.setName(requireText(name, "name"));
+        String normalizedName = requireText(name, "name");
+        if (categoryRepository.existsByNameIgnoreCase(normalizedName)) {
+            throw new DuplicateCategoryException(normalizedName);
+        }
+        category.setName(normalizedName);
         category.setType(requireText(type, "type"));
         category.setDescription(description);
         category.setActive(true);
@@ -24,16 +29,24 @@ public class CategoryService {
     }
 
     public Category renameCategory(String currentName, String newName) {
-        Category category = categoryRepository.findByNameIgnoreCase(currentName)
+        Category category = categoryRepository.findByNameIgnoreCase(requireText(currentName, "name"))
                 .orElseThrow(() -> new CategoryNotFoundException(currentName));
-        category.setName(requireText(newName, "name"));
+        String normalizedNewName = requireText(newName, "name");
+        if (categoryRepository.existsByNameIgnoreCaseAndIdNot(normalizedNewName, category.getId())) {
+            throw new DuplicateCategoryException(normalizedNewName);
+        }
+        category.setName(normalizedNewName);
         return categoryRepository.save(category);
     }
 
     public Category updateCategory(Long id, String name, String type, String description, boolean isActive) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
-        category.setName(requireText(name, "name"));
+        String normalizedName = requireText(name, "name");
+        if (categoryRepository.existsByNameIgnoreCaseAndIdNot(normalizedName, category.getId())) {
+            throw new DuplicateCategoryException(normalizedName);
+        }
+        category.setName(normalizedName);
         category.setType(requireText(type, "type"));
         category.setDescription(description);
         category.setActive(isActive);
