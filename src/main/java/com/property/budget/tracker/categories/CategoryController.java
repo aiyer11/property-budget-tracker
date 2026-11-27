@@ -58,7 +58,8 @@ public class CategoryController {
     }
 
     @PostMapping("/deactivate/{id}")
-    public void deactivateCategory(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivateCategory(@PathVariable Long id) {
         categoryService.deactivateCategory(id);
+        return ResponseEntity.noContent().build();
     }
 }
